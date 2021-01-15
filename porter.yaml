@@ -4,7 +4,7 @@
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
 name: aks-kubeflow-msi
-version: 0.1.0
+version: 0.1.1
 description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS using MSI and specifying custom UI metadata for use with Azure integration. "
 # TODO: update the registry to your own, e.g. myregistry
 registry: ghcr.io/squillace
