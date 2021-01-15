@@ -3,9 +3,9 @@
 # See https://porter.sh/author-bundles for documentation on how to configure your bundle
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
-name: aks-kubeflow
-version: 0.3.1
-description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS. It currently requires an Azure Service Principal with the following role scoped to the AKS service instance: az ad sp create-for-rbac -n \"kubeconfig-read\" --role \"Azure Kubernetes Service Cluster User Role\" --scopes <cluster resource id>"
+name: aks-kubeflow-msi
+version: 0.1.0
+description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS using MSI and specifying custom UI metadata for use with Azure integration. "
 # TODO: update the registry to your own, e.g. myregistry
 registry: ghcr.io/squillace
 
@@ -20,34 +20,7 @@ mixins:
   - kfctl
 
 install:
-  - az:
-      description: "Logging into Azure..."  
-      arguments:
-        - login
-      suppress-output: true
-      flags:
-        service-principal:
-        username: "'{{bundle.credentials.AZURE_CLIENT_ID}}'"
-        password: "'{{bundle.credentials.AZURE_SP_PASSWORD}}'"
-        tenant: "'{{bundle.credentials.TENANT_ID_OR_DNS}}'"
-        output: table
-  - az: 
-      description: "Setting the Azure subscription...."
-      suppress-output: true
-      arguments: 
-        - "account" 
-        - "set" 
-      flags:
-        subscription: "{{ bundle.credentials.AZURE_SUBSCRIPTION_ID}}"
-  - az:
-      description: "Getting cluster access...."
-      suppress-output: true
-      arguments: 
-        - aks
-        - get-credentials
-      flags: 
-        resource-group: "'{{bundle.parameters.AZURE_RESOURCE_GROUP}}'"
-        name: "'{{bundle.parameters.CLUSTER_NAME}}'"
+
   - exec:
       command: istioctl
       description: "Initializing Istio...."
@@ -130,36 +103,6 @@ upgrade:
         - upgrade
 
 uninstall:
-  - az:
-      description: "Logging into Azure..."  
-      arguments:
-        - login
-      suppress-output: true
-      flags:
-        service-principal:
-        username: "'{{bundle.credentials.AZURE_CLIENT_ID}}'"
-        password: "'{{bundle.credentials.AZURE_SP_PASSWORD}}'"
-        tenant: "'{{bundle.credentials.TENANT_ID_OR_DNS}}'"
-        output: table
-  - az: 
-      description: "Setting the Azure subscription...."
-      suppress-output: true
-      arguments: 
-        - "account" 
-        - "set" 
-      flags:
-        subscription: "{{ bundle.credentials.AZURE_SUBSCRIPTION_ID}}"
-  - az:
-      description: "Getting cluster access...."
-      suppress-output: true
-      arguments: 
-        - aks
-        - get-credentials
-      flags: 
-        resource-group: "'{{bundle.parameters.AZURE_RESOURCE_GROUP}}'"
-        name: "'{{bundle.parameters.CLUSTER_NAME}}'"
-
-
   - exec:
       command: unzip
       description: "Rehydrating the Kustomize state..." 
@@ -229,31 +172,14 @@ outputs:
 # Below is an example of how to define credentials
 # See https://porter.sh/author-bundles/#credentials
 credentials:
-#  - name: kubeconfig
-#    description: "The Kubernetes configuration file that has permission to connect to the AKS cluster to be configured."
-#    path: /root/.kube/config
-  - name: AZURE_CLIENT_ID
-    description: "The client id for the service principal used to automate the bundle's actions."
-    env: AZURE_CLIENT_ID
-  - name: TENANT_ID_OR_DNS
-    description: "The tenant identity in which the service principal resides."
-    env: TENANT_ID_OR_DNS
-  - name: AZURE_SP_PASSWORD
-    description: "The service principal password that is used to log into Azure inside the bundle."
-    env: AZURE_SP_PASSWORD
-  - name: AZURE_SUBSCRIPTION_ID
-    description: "The Azure subscription into which to deploy."
-    env: AZURE_SUB_ID
+  - name: kubeconfig
+    description: "The Kubernetes configuration file that has permission to connect to the AKS cluster to be configured."
+    path: /root/.kube/config
+
 
 # Below is an example of how to define parameters
 # See https://porter.sh/author-bundles/#parameters
 parameters:
-  - name: AZURE_RESOURCE_GROUP
-    description: "The Azure resource group for the AKS cluster."
-    type: string
-  - name: CLUSTER_NAME
-    description: "The name of the AKS cluster."
-    type: string
   - name: KF_DIR
     description: "The deployment folder used for kfctl."
     type: string
@@ -272,7 +198,83 @@ parameters:
       - "uninstall"
     source:
       output: kustomize
+
 #  - name: KUBEFLOW_NAMESPACE
 #    description: "The namespace into which to deploy Kubeflow."
 #    default: kubeflow
 #    type: string
+custom:
+  com.azure.creatuidef:
+    blades:
+      Kubernetes:
+        displayOrder: 2
+        label: Kubernetes Properties
+      SQLServer:
+        displayOrder: 1
+        label: SQL Server Properties
+    elements:
+      - name: sql_masterkeypassword
+        displayName: SQL Server Master Password
+        displayOrder: 1
+        tooltip: This is the password for the SQL Server Master user
+        validationMessage: Password must be at least 12 characters long and contain at least one letter, one number and one of !@#$%
+        validationRegex: ^((?=.*\d)(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%]).{12,})
+        uitype: Microsoft.Common.PasswordBox
+        bladename: SQLServer
+      - name: sql_sapassword
+        displayName: SQL Server Password
+        displayOrder: 2
+        tooltip: This is the password for the SQL sa user
+        validationMessage: Password must be at least 12 characters long and contain at least one letter, one number and one of !@#$%
+        validationRegex: ^((?=.*\d)(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%]).{12,})
+        uitype: Microsoft.Common.PasswordBox
+        bladename: SQLServer
+      - name: namespace
+        displayOrder: 1
+        tooltip: This is the Kubernetes namespace that SQL Server will be created in, this namespace will be created as part of the installation
+        displayName: Kubernetes Namespace for SQL Server
+        uitype: Microsoft.Common.TextBox
+        bladename: Kubernetes
+      - name: kubeconfig
+        tooltip: A Valid Kubernetes config for the Kuberentes cluster to install SQL Server in
+        displayName: Kubernetes Configuration
+        displayOrder: 2
+        uitype: Microsoft.Common.TextBox
+        bladename: Kubernetes
+      - name: availability_group_name
+        tooltip: The SQL Server Availiabity Group Name to create
+        displayName: SQL Server AG Name
+        displayOrder: 5
+        uitype: Microsoft.Common.TextBox
+        bladename: SQLServer
+      - name: data_storage_account_type
+        tooltip: The Azure storage account type for data
+        displayName: Storage Account Type
+        displayOrder: 6
+        uitype: Microsoft.Common.TextBox
+        bladename: SQLServer
+      - name: data_storage_account_kind
+        tooltip: The Azure account kind of storage for SQL Server Data
+        displayName: Storage Account Kind
+        displayOrder: 7
+        uitype: Microsoft.Common.TextBox
+        bladename: SQLServer
+      - name: storage_volume_size
+        tooltip: The size in Gigabytes of the data volume for SQL Server data
+        displayName: Data Volume Size
+        displayOrder: 3  
+        uitype: Microsoft.Common.TextBox
+        bladename: SQLServer
+      - name: backup_volume_size
+        tooltip: The size in Gigabytes of the backup data volume for SQL Server data
+        displayName: Backup Volume Size
+        displayOrder: 4  
+        uitype: Microsoft.Common.TextBox
+        bladename: SQLServer
+      - name: deploymentTime
+        hide: true
+      - name: cnab_installation_name
+        displayOrder: 8
+        tooltip: The CNAB Bundle installation name
+        displayName: Installation Name
+        bladename: SQLServer
