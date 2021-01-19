@@ -4,7 +4,7 @@
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
 name: aks-kubeflow-msi
-version: 0.1.1
+version: 0.1.2
 description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS using MSI and specifying custom UI metadata for use with Azure integration. "
 # TODO: update the registry to your own, e.g. myregistry
 registry: ghcr.io/squillace
@@ -180,6 +180,9 @@ credentials:
 # Below is an example of how to define parameters
 # See https://porter.sh/author-bundles/#parameters
 parameters:
+  - name: CLUSTER_NAME
+    description: "The cluster into which you want to deploy Kubeflow."
+    type: string
   - name: KF_DIR
     description: "The deployment folder used for kfctl."
     type: string
