@@ -77,7 +77,7 @@ install:
       description: "Deploying Kubeflow...."
       suppress-output: false
       flags:
-        c: "'cd {{bundle.parameters.KF_DIR}} && kfctl apply -V -f {{bundle.parameters.CONFIG_FILE}}'"
+        c: "'cd v1.2-deployment && kfctl apply -V -f kfctl_azure.v1.2.0.yaml'"
 
   - exec:
       command: zip
@@ -104,7 +104,7 @@ uninstall:
       description: "Rehydrating the Kustomize state..." 
       suppress-output: false
       arguments:
-        - "{{bundle.parameters.KF_DIR}}/kustomize.zip"
+        - "v1.2-deployment/kustomize.zip"
 
   - exec:
       description: "Acquiring the cluster name...."
@@ -134,7 +134,7 @@ uninstall:
       description: "Deleting the KubeFlow deployment...."
       suppress-output: false
       flags:
-        c: "'cd {{bundle.parameters.KF_DIR}} && kfctl delete -f {{bundle.parameters.CONFIG_FILE}} --verbose'"
+        c: "'cd v1.2-deployment && kfctl delete -f kfctl_azure.v1.2.0.yaml --verbose'"
 
   - kubernetes:
       description: "Deleting the istio components..."
@@ -183,16 +183,6 @@ credentials:
 # See https://porter.sh/author-bundles/#parameters
 parameters:
 
-  - name: KF_DIR
-    description: "The deployment folder used for kfctl."
-    type: string
-    default: v1.2-deployment  
-    env: KF_DIR
-  - name: CONFIG_FILE
-    description: "The deployment config file used for kfctl."
-    type: string
-    default: kfctl_azure.v1.2.0.yaml
-    env: CONFIG_FILE
   - name: kustomize
     description: "This value is automatically pulled from the state of the bundle installation the uninstall operation is working against. You do not provide it yourself."
     type: file
