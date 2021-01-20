@@ -4,7 +4,7 @@
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
 name: aks-kubeflow-msi
-version: 0.1.4
+version: 0.1.5
 description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS using MSI and specifying custom UI metadata for use with Azure integration. "
 # TODO: update the registry to your own, e.g. myregistry
 registry: ghcr.io/squillace
@@ -52,7 +52,7 @@ install:
         minify: ""
         o: "jsonpath={.clusters[].name}"
       outputs:
-        - name: cluster
+        - name: cluster-name
           regex: "(\\w*)"
 
   - exec:
@@ -60,7 +60,7 @@ install:
       description: "Configuring the Kubeflow deployment with the cluster name..."
       suppress-output: true
       arguments:
-        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster}}/g'"
+        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster-name}}/g'"
         - v1.2-deployment/kfctl_azure.v1.2.0.yaml
       flags:
         i: ""
@@ -116,7 +116,7 @@ uninstall:
         minify: ""
         o: "jsonpath={.clusters[].name}"
       outputs:
-        - name: cluster
+        - name: cluster-name
           regex: "(\\w*)"
 
   - exec:
@@ -124,7 +124,7 @@ uninstall:
       description: "Configuring the Kubeflow deployment with the cluster name..."
       suppress-output: true
       arguments:
-        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster}}/g'"
+        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster-name}}/g'"
         - v1.2-deployment/kfctl_azure.v1.2.0.yaml
       flags:
         i: ""
@@ -163,7 +163,7 @@ outputs:
     applyTo:
       - "install"
     path: /cnab/app/v1.2-deployment/kustomize.zip
-  - name: cluster
+  - name: cluster-name
     description: "The name of the cluster."
     type: string
     applyTo: 
