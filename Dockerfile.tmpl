@@ -3,7 +3,7 @@ FROM debian:stretch
 ARG BUNDLE_DIR
 
 RUN apt-get update && apt-get install -y ca-certificates
-RUN apt-get install zip unzip --yes
+RUN apt-get install zip unzip curl --yes
 # PORTER_MIXINS
 
 
