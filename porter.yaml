@@ -51,7 +51,7 @@ install:
         minify: ""
         o: "jsonpath={.clusters[].name}"
       outputs:
-        - name: cluster-name
+        - name: cluster
           regex: "(\\w*)"
 
   - exec:
@@ -59,7 +59,7 @@ install:
       description: "Configuring the Kubeflow deployment with the cluster name..."
       suppress-output: true
       arguments:
-        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster-name}}/g'"
+        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster}}/g'"
         - v1.2-deployment/kfctl_azure.v1.2.0.yaml
       flags:
         i: ""
@@ -115,7 +115,7 @@ uninstall:
         minify: ""
         o: "jsonpath={.clusters[].name}"
       outputs:
-        - name: cluster-name
+        - name: cluster
           regex: "(\\w*)"
 
   - exec:
@@ -123,7 +123,7 @@ uninstall:
       description: "Configuring the Kubeflow deployment with the cluster name..."
       suppress-output: true
       arguments:
-        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster-name}}/g'"
+        - "'s/  clusterName: cncf/  clusterName: {{bundle.outputs.cluster}}/g'"
         - v1.2-deployment/kfctl_azure.v1.2.0.yaml
       flags:
         i: ""
@@ -162,7 +162,7 @@ outputs:
     applyTo:
       - "install"
     path: /cnab/app/v1.2-deployment/kustomize.zip
-  - name: cluster-name
+  - name: cluster
     description: "The name of the cluster."
     type: string
     applyTo: 
