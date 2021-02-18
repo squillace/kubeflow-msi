@@ -3,7 +3,7 @@
 # See https://porter.sh/author-bundles for documentation on how to configure your bundle
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
-name: aks-kubeflow-msi
+name: kubeflow
 version: 0.1.8
 description: "A bundle that installs, tests, and uninstalls Kubeflow on AKS using MSI and specifying custom UI metadata for use with Azure integration. "
 # TODO: update the registry to your own, e.g. myregistry
