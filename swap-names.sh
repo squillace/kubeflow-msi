@@ -1,6 +1,8 @@
 #!/bin/bash
-env
-exit 1
+#env
+#exit 1
 name="$1"
-if [[ name == "<nil>" ]]; then
+if [[ $name == "<nil>" || "" ]]; then
     return "cluster.local"
+elif 
+    return $name
